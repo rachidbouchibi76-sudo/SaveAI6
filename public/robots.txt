@@ -1,0 +1,14 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /compare
+Disallow: /share/
+
+# Host
+Host: https://saveai.example.com
+
+# Sitemaps
+Sitemap: https://saveai.example.com/sitemap.xml

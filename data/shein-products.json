@@ -1,0 +1,62 @@
+[
+  {
+    "goods_id": "12345678",
+    "goods_name": "Women's Casual Oversized T-Shirt",
+    "sale_price": "12.99",
+    "retail_price": "24.99",
+    "currency": "USD",
+    "goods_img": "/images/WomensTShirt.jpg",
+    "goods_url": "https://www.shein.com/product-12345678.html",
+    "comment_rank": "4.5",
+    "comment_count": "1234",
+    "cat_name": "Women > Tops > T-Shirts"
+  },
+  {
+    "goods_id": "23456789",
+    "goods_name": "High Waist Wide Leg Jeans",
+    "sale_price": "28.99",
+    "retail_price": "45.00",
+    "currency": "USD",
+    "goods_img": "/images/Jeans.jpg",
+    "goods_url": "https://www.shein.com/product-23456789.html",
+    "comment_rank": "4.3",
+    "comment_count": "892",
+    "cat_name": "Women > Bottoms > Jeans"
+  },
+  {
+    "goods_id": "34567890",
+    "goods_name": "Floral Print Summer Dress",
+    "sale_price": "19.99",
+    "retail_price": "35.99",
+    "currency": "USD",
+    "goods_img": "/images/FloralDress.jpg",
+    "goods_url": "https://www.shein.com/product-34567890.html",
+    "comment_rank": "4.6",
+    "comment_count": "2341",
+    "cat_name": "Women > Dresses > Casual Dresses"
+  },
+  {
+    "goods_id": "45678901",
+    "goods_name": "Knit Cardigan Sweater",
+    "sale_price": "22.99",
+    "retail_price": "38.99",
+    "currency": "USD",
+    "goods_img": "/images/KnitCardigan.jpg",
+    "goods_url": "https://www.shein.com/product-45678901.html",
+    "comment_rank": "4.4",
+    "comment_count": "567",
+    "cat_name": "Women > Sweaters > Cardigans"
+  },
+  {
+    "goods_id": "56789012",
+    "goods_name": "Crossbody Shoulder Bag",
+    "sale_price": "15.99",
+    "retail_price": "29.99",
+    "currency": "USD",
+    "goods_img": "/images/CrossbodyBag.jpg",
+    "goods_url": "https://www.shein.com/product-56789012.html",
+    "comment_rank": "4.2",
+    "comment_count": "1456",
+    "cat_name": "Accessories > Bags > Crossbody Bags"
+  }
+]

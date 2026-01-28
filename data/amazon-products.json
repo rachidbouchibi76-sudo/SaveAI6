@@ -1,0 +1,67 @@
+[
+  {
+    "asin": "B08N5WRWNW",
+    "title": "Apple AirPods Max - Silver",
+    "price": "479.99",
+    "list_price": "549.00",
+    "currency": "USD",
+    "image_url": "/images/AirPods.jpg",
+    "product_url": "https://www.amazon.com/dp/B08N5WRWNW",
+    "rating": "4.6",
+    "reviews_count": "15234",
+    "category": "Electronics > Headphones",
+    "brand": "Apple"
+  },
+  {
+    "asin": "B0BSHF7LLL",
+    "title": "Sony WH-1000XM5 Wireless Noise Canceling Headphones",
+    "price": "328.00",
+    "list_price": "399.99",
+    "currency": "USD",
+    "image_url": "/images/Headphones.jpg",
+    "product_url": "https://www.amazon.com/dp/B0BSHF7LLL",
+    "rating": "4.5",
+    "reviews_count": "8932",
+    "category": "Electronics > Headphones",
+    "brand": "Sony"
+  },
+  {
+    "asin": "B0C33XXS56",
+    "title": "Bose QuietComfort Ultra Headphones",
+    "price": "379.00",
+    "list_price": "429.00",
+    "currency": "USD",
+    "image_url": "/images/BoseHeadphones.jpg",
+    "product_url": "https://www.amazon.com/dp/B0C33XXS56",
+    "rating": "4.4",
+    "reviews_count": "5621",
+    "category": "Electronics > Headphones",
+    "brand": "Bose"
+  },
+  {
+    "asin": "B09JQMJHXY",
+    "title": "Beats Studio Pro Wireless Headphones",
+    "price": "249.95",
+    "list_price": "349.99",
+    "currency": "USD",
+    "image_url": "/images/BeatsHeadphones.jpg",
+    "product_url": "https://www.amazon.com/dp/B09JQMJHXY",
+    "rating": "4.3",
+    "reviews_count": "3421",
+    "category": "Electronics > Headphones",
+    "brand": "Beats"
+  },
+  {
+    "asin": "B0CMDVQZ8P",
+    "title": "Sennheiser Momentum 4 Wireless Headphones",
+    "price": "299.95",
+    "list_price": "379.95",
+    "currency": "USD",
+    "image_url": "/images/WirelessHeadphones.jpg",
+    "product_url": "https://www.amazon.com/dp/B0CMDVQZ8P",
+    "rating": "4.5",
+    "reviews_count": "2187",
+    "category": "Electronics > Headphones",
+    "brand": "Sennheiser"
+  }
+]
