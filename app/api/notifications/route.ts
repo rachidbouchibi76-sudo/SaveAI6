@@ -6,12 +6,13 @@ import { verifyAuth, handleApiError } from "@/lib/api/helpers"
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const user = await verifyAuth(supabase)
+    const { userId, user, error: authError } = await verifyAuth(supabase)
+    if (authError) return authError
 
     const { data: notifications, error } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", user.id)
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user!.id)
       .order("created_at", { ascending: false })
       .limit(50)
 
@@ -30,7 +31,8 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const user = await verifyAuth(supabase)
+    const { userId, user, error: authError } = await verifyAuth(supabase)
+    if (authError) return authError
     const body = await request.json()
 
     const { id, read } = body
@@ -65,7 +67,8 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const user = await verifyAuth(supabase)
+    const { userId, user, error: authError } = await verifyAuth(supabase)
+    if (authError) return authError
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")

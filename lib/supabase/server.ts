@@ -14,7 +14,7 @@ export async function createClient() {
       'https://placeholder.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTI4MDAsImV4cCI6MTk2MDc2ODgwMH0.placeholder',
       {
-        cookies: {
+        cookies: ({
           get(name: string) {
             return cookieStore.get(name)?.value
           },
@@ -32,13 +32,13 @@ export async function createClient() {
               // Ignore
             }
           },
-        },
+        } as any),
       }
     )
   }
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
+    cookies: ({
       get(name: string) {
         return cookieStore.get(name)?.value
       },
@@ -60,7 +60,7 @@ export async function createClient() {
           // user sessions.
         }
       },
-    },
+    } as any),
   })
 }
 
@@ -75,12 +75,12 @@ export async function createServiceClient() {
       'https://placeholder.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY0NTE5MjgwMCwiZXhwIjoxOTYwNzY4ODAwfQ.placeholder',
       {
-        cookies: {},
+        cookies: ({} as any),
       }
     )
   }
 
   return createServerClient(supabaseUrl, supabaseServiceKey, {
-    cookies: {},
+    cookies: ({} as any),
   })
 }

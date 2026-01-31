@@ -18,7 +18,7 @@ export interface ApiResponse<T = any> {
 /**
  * Enhanced error handler with proper logging (no sensitive data)
  */
-export function handleApiError(error: unknown): NextResponse<ApiError> {
+export function handleApiError(error: unknown): NextResponse<ApiResponse<never>> {
   // Log error without sensitive information
   if (error instanceof Error) {
     console.error('[API Error]:', {
@@ -35,6 +35,7 @@ export function handleApiError(error: unknown): NextResponse<ApiError> {
   // Return generic error to client (don't expose internal details)
   return NextResponse.json(
     {
+      success: false,
       error: 'Internal Server Error',
       details: 'An error occurred while processing your request',
     },
@@ -45,7 +46,7 @@ export function handleApiError(error: unknown): NextResponse<ApiError> {
 /**
  * Enhanced authentication verification with proper error handling
  */
-export async function verifyAuth(): Promise<{ userId: string | null; error?: NextResponse }> {
+export async function verifyAuth(): Promise<{ userId: string | null; error?: NextResponse<ApiResponse<never>> }> {
   try {
     const supabase = await createClient()
     const {
@@ -57,7 +58,7 @@ export async function verifyAuth(): Promise<{ userId: string | null; error?: Nex
       return {
         userId: null,
         error: NextResponse.json(
-          { error: 'Unauthorized', details: 'Authentication required' },
+          { success: false, error: 'Unauthorized', details: 'Authentication required' },
           { status: 401 }
         ),
       }
@@ -71,7 +72,7 @@ export async function verifyAuth(): Promise<{ userId: string | null; error?: Nex
     return {
       userId: null,
       error: NextResponse.json(
-        { error: 'Authentication failed' },
+        { success: false, error: 'Authentication failed' },
         { status: 401 }
       ),
     }

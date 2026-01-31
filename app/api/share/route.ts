@@ -7,7 +7,8 @@ import { randomBytes } from "crypto"
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const user = await verifyAuth(supabase)
+    const { userId, user, error: authError } = await verifyAuth(supabase)
+    if (authError) return authError
     const body = await request.json()
 
     const { title, products, isPublic, expiresInDays } = body
@@ -112,7 +113,8 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const user = await verifyAuth(supabase)
+    const { userId, user, error: authError } = await verifyAuth(supabase)
+    if (authError) return authError
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")

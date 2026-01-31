@@ -41,18 +41,28 @@ export class ProviderResolver {
     return {
       providers: {
         'amazon-file': {
-          enabled: process.env.ENABLE_AMAZON_FILE === 'true',
+          enabled: (process.env.AMAZON_DATA_SOURCE || 'file') === 'file' || process.env.ENABLE_AMAZON_FILE === 'true',
           priority: 1,
           options: {
             dataFilePath: process.env.AMAZON_DATA_FILE || '/data/amazon-products.json'
           }
         },
         'shein-file': {
-          enabled: process.env.ENABLE_SHEIN_FILE === 'true',
+          enabled: (process.env.SHEIN_DATA_SOURCE || 'file') === 'file' || process.env.ENABLE_SHEIN_FILE === 'true',
           priority: 2,
           options: {
             dataFilePath: process.env.SHEIN_DATA_FILE || '/data/shein-products.json'
           }
+        },
+        'amazon': {
+          enabled: true,
+          priority: 1,
+          options: {}
+        },
+        'shein': {
+          enabled: true,
+          priority: 2,
+          options: {}
         },
         // Future providers can be added here
         // 'amazon-api': { enabled: false, priority: 3 },
@@ -72,13 +82,42 @@ export class ProviderResolver {
       const options = configs['amazon-file'].options || {}
       this.providers.set('amazon-file', new AmazonFileProvider(options.dataFilePath))
     }
-    
+
     // Shein File Provider
     if (configs['shein-file']?.enabled) {
       const options = configs['shein-file'].options || {}
       this.providers.set('shein-file', new SheinFileProvider(options.dataFilePath))
     }
-    
+
+    // New composite providers (switchable data sources)
+    // Amazon composite provider
+    const amazonSource = (process.env.AMAZON_DATA_SOURCE || 'file') === 'api' ? 'api' : 'file'
+    if (amazonSource === 'file') {
+      const { AmazonFileDataSource } = require('@/lib/providers/data/AmazonFileDataSource')
+      const ds = new AmazonFileDataSource(configs['amazon-file']?.options?.dataFilePath)
+      const { AmazonProvider } = require('@/lib/providers/AmazonProvider')
+      this.providers.set('amazon', new AmazonProvider(ds, 'file'))
+    } else {
+      const { AmazonApiDataSource } = require('@/lib/providers/data/AmazonApiDataSource')
+      const ds = new AmazonApiDataSource(configs['amazon']?.options)
+      const { AmazonProvider } = require('@/lib/providers/AmazonProvider')
+      this.providers.set('amazon', new AmazonProvider(ds, 'api'))
+    }
+
+    // Shein composite provider
+    const sheinSource = (process.env.SHEIN_DATA_SOURCE || 'file') === 'api' ? 'api' : 'file'
+    if (sheinSource === 'file') {
+      const { SheinFileDataSource } = require('@/lib/providers/data/SheinFileDataSource')
+      const ds = new SheinFileDataSource(configs['shein-file']?.options?.dataFilePath)
+      const { SheinProvider } = require('@/lib/providers/SheinProvider')
+      this.providers.set('shein', new SheinProvider(ds, 'file'))
+    } else {
+      const { SheinApiDataSource } = require('@/lib/providers/data/SheinApiDataSource')
+      const ds = new SheinApiDataSource(configs['shein']?.options)
+      const { SheinProvider } = require('@/lib/providers/SheinProvider')
+      this.providers.set('shein', new SheinProvider(ds, 'api'))
+    }
+
     // Future providers will be initialized here
   }
   

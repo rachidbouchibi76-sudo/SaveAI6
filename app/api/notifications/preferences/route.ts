@@ -6,12 +6,13 @@ import { verifyAuth, handleApiError } from "@/lib/api/helpers"
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const user = await verifyAuth(supabase)
+    const { userId, user, error: authError } = await verifyAuth(supabase)
+    if (authError) return authError
 
     const { data: preferences, error } = await supabase
       .from("notification_preferences")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", user!.id)
       .single()
 
     if (error && error.code !== "PGRST116") {
@@ -54,7 +55,8 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const user = await verifyAuth(supabase)
+    const { userId, user, error: authError } = await verifyAuth(supabase)
+    if (authError) return authError
     const body = await request.json()
 
     const {

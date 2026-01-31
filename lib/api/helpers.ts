@@ -16,13 +16,16 @@ export interface ApiResponse<T = any> {
 
 /**
  * Centralized error handler for API routes
+ * Returns the standard ApiResponse shape so callers typed as
+ * NextResponse<ApiResponse<T>> remain compatible when an error occurs
  */
-export function handleApiError(error: unknown): NextResponse<ApiError> {
+export function handleApiError(error: unknown): NextResponse<ApiResponse<never>> {
   console.error('[API Error]:', error)
 
   if (error instanceof Error) {
     return NextResponse.json(
       {
+        success: false,
         error: 'Internal Server Error',
         details: error.message,
       },
@@ -32,6 +35,7 @@ export function handleApiError(error: unknown): NextResponse<ApiError> {
 
   return NextResponse.json(
     {
+      success: false,
       error: 'Unknown error occurred',
     },
     { status: 500 }
@@ -39,11 +43,12 @@ export function handleApiError(error: unknown): NextResponse<ApiError> {
 }
 
 /**
- * Verify user authentication and return user ID
+ * Verify user authentication and return user ID and user object
+ * Accepts optional Supabase client (some routes pass it explicitly)
  */
-export async function verifyAuth(): Promise<{ userId: string | null; error?: NextResponse }> {
+export async function verifyAuth(supabaseClient?: any): Promise<{ userId: string | null; user?: any; error?: NextResponse<ApiResponse<never>> }> {
   try {
-    const supabase = await createClient()
+    const supabase = supabaseClient ?? (await createClient())
     const {
       data: { user },
       error,
@@ -52,16 +57,16 @@ export async function verifyAuth(): Promise<{ userId: string | null; error?: Nex
     if (error || !user) {
       return {
         userId: null,
-        error: NextResponse.json({ error: 'Unauthorized', details: 'Please sign in to continue' }, { status: 401 }),
+        error: NextResponse.json({ success: false, error: 'Unauthorized', details: 'Please sign in to continue' }, { status: 401 }),
       }
     }
 
-    return { userId: user.id }
+    return { userId: user.id, user }
   } catch (error) {
     console.error('[Auth Error]:', error)
     return {
       userId: null,
-      error: NextResponse.json({ error: 'Authentication failed' }, { status: 401 }),
+      error: NextResponse.json({ success: false, error: 'Authentication failed' }, { status: 401 }),
     }
   }
 }

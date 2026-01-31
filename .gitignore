@@ -24,4 +24,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# data files (large, user-managed)
+/data/**
+*.parquet
+
 next-env.d.ts
