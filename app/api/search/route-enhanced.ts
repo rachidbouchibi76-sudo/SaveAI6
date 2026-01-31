@@ -6,6 +6,7 @@ import {
   logApiRequest,
   type ApiResponse,
 } from '@/lib/api/helpers-enhanced'
+import { getProviderResolver } from '@/lib/resolver/ProviderResolver'
 import { validateAndSanitize, searchSchema } from '@/lib/api/validation'
 
 interface Product {
@@ -68,33 +69,38 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       reviews: 1234,
     }
 
-    // Mock alternatives
-    const mockAlternatives: Product[] = [
-      {
-        id: 'alt_1',
-        name: mockProduct.name + ' - Alternative 1',
-        price: 279.99,
-        currency: 'USD',
-        image: '/placeholder.jpg',
-        url: 'https://example.com/alt1',
-        store: 'Store A',
-        rating: 4.3,
-        reviews: 890,
-      },
-      {
-        id: 'alt_2',
-        name: mockProduct.name + ' - Alternative 2',
-        price: 319.99,
-        currency: 'USD',
-        image: '/placeholder.jpg',
-        url: 'https://example.com/alt2',
-        store: 'Store B',
-        rating: 4.7,
-        reviews: 2100,
-      },
-    ]
+    // Mock alternatives (legacy) - try providers if available
+    let allProducts: Product[] = [mockProduct]
 
-    const allProducts = [mockProduct, ...mockAlternatives]
+    try {
+      const resolver = getProviderResolver()
+      const providers = await resolver.getAvailableProviders()
+
+      for (const provider of providers) {
+        const res = await provider.search({ query, type: isUrlInput ? 'url' : 'keyword', userId: userId || undefined })
+        if (res && Array.isArray(res.products) && res.products.length > 0) {
+          allProducts = [...allProducts, ...res.products]
+        }
+        if (allProducts.length >= 3) break
+      }
+    } catch (err) {
+      console.warn('[ProviderResolver] providers unavailable, falling back to mocks')
+      const mockAlternatives: Product[] = [
+        {
+          id: 'alt_1',
+          name: mockProduct.name + ' - Alternative 1',
+          price: 279.99,
+          currency: 'USD',
+          image: '/placeholder.jpg',
+          url: 'https://example.com/alt1',
+          store: 'Store A',
+          rating: 4.3,
+          reviews: 890,
+        },
+      ]
+      allProducts = [...allProducts, ...mockAlternatives]
+    }
+
     const cheapest = allProducts.reduce((min, p) => (p.price < min.price ? p : min))
 
     // Store search in database with proper error handling
@@ -117,12 +123,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       // Continue even if DB insert fails
     }
 
+    const alternatives = allProducts.slice(1, 6)
     const response: SearchResponse = {
       query: query,
       type: isUrlInput ? 'url' : 'keyword',
       urlType,
       product: mockProduct,
-      alternatives: mockAlternatives,
+      alternatives,
       cheapest,
       searchId: searchRecord?.id || 'search_' + Date.now(),
     }

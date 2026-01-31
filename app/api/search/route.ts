@@ -10,6 +10,7 @@ import {
   logApiRequest,
   type ApiResponse,
 } from '@/lib/api/helpers'
+import { getProviderResolver } from '@/lib/resolver/ProviderResolver'
 
 interface SearchRequest {
   query: string
@@ -191,9 +192,32 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       allProducts = [...allProducts, ...admitadResults.value]
     }
 
-    // Graceful fallback if no real results
+    // If APIs returned no results, try local providers (file-based datasets)
     if (allProducts.length === 0) {
-      console.warn('No products from APIs, using minimal fallback')
+      try {
+        const resolver = getProviderResolver()
+        const providers = await resolver.getAvailableProviders()
+
+        for (const provider of providers) {
+          // Prefer providers matching the detected store (e.g., amazon) when possible
+          if (urlType && provider.store && provider.store !== urlType) continue
+
+          const res = await provider.search({ query: sanitizedQuery as string, type: isUrlInput ? 'url' : 'keyword', userId: userId || undefined })
+          if (res && Array.isArray(res.products) && res.products.length > 0) {
+            allProducts = [...allProducts, ...res.products]
+          }
+
+          // Stop early if we have a good set
+          if (allProducts.length >= 5) break
+        }
+      } catch (err) {
+        console.error('[ProviderResolver] search fallback failed:', err)
+      }
+    }
+
+    // Final graceful fallback if still empty
+    if (allProducts.length === 0) {
+      console.warn('No products from APIs or providers, using minimal fallback')
       const fallbackPrice = 99.99
       const fallbackOriginal = 129.99
       const fallbackSavings = fallbackOriginal - fallbackPrice
