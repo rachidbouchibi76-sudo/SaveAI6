@@ -29,4 +29,9 @@ yarn-error.log*
 /data/**
 *.parquet
 
+# Allow small sample JSONs used for local development
+!/data/amazon/
+!/data/amazon/samples/
+!/data/amazon/samples/*.json
+
 next-env.d.ts

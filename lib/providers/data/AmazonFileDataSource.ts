@@ -2,7 +2,15 @@ import { readFile, readdir } from 'fs/promises'
 import { existsSync, statSync } from 'fs'
 import { join } from 'path'
 import { ProductDataSource } from './ProductDataSource'
-import parquet from 'parquetjs-lite'
+
+// Prefer DuckDB for reliable parquet access (streaming via SQL)
+const duckdb = (() => {
+  try {
+    return require('duckdb')
+  } catch (e) {
+    return null
+  }
+})()
 
 export class AmazonFileDataSource implements ProductDataSource {
   private dataFilePath: string
@@ -14,11 +22,54 @@ export class AmazonFileDataSource implements ProductDataSource {
 
   /**
    * Fetch raw entries matching the optional query, up to the provided limit.
-   * Streams Parquet files when a directory is provided to avoid loading the entire dataset.
+   * Priority: Parquet dir -> sample JSON -> legacy JSON file -> []
    */
   async fetch(query?: string, limit: number = this.DEFAULT_LIMIT): Promise<any[]> {
-    // If the path points to a JSON file, keep previous behavior
     try {
+      const parquetDir = join(process.cwd(), 'data', 'amazon', 'parquet')
+      const sampleFile = join(process.cwd(), 'data', 'amazon', 'samples', 'amazon-products.sample.json')
+
+      // 1) If parquet is available and duckdb is present, use it (streamed via SQL LIMIT)
+      if (duckdb && existsSync(parquetDir) && statSync(parquetDir).isDirectory()) {
+        try {
+          const files = (await readdir(parquetDir)).filter(f => f.endsWith('.parquet'))
+          if (files.length > 0) {
+            const db = new duckdb.Database(':memory:')
+            const conn = db.connect()
+            const glob = join(parquetDir, '*.parquet')
+
+            // We won't push query into SQL directly to avoid SQL injection; filter in JS after fetch
+            const sql = `SELECT * FROM read_parquet('${glob}') LIMIT ${limit}`
+
+            const rows: any[] = await new Promise((resolve, reject) => {
+              conn.all(sql, (err: any, res: any[]) => {
+                try { conn.close() } catch (e) {}
+                if (err) return reject(err)
+                return resolve(res || [])
+              })
+            })
+
+            if (!query) return rows
+            const q = query.toLowerCase()
+            return rows.filter(r => ((r.title || r.name || '') + '').toLowerCase().includes(q)).slice(0, limit)
+          }
+        } catch (err) {
+          console.error('[AmazonFileDataSource] duckdb/parquet error:', err)
+          // fallthrough to sample/legacy
+        }
+      }
+
+      // 2) If sample JSON exists, use it
+      if (existsSync(sampleFile) && statSync(sampleFile).isFile()) {
+        const content = await readFile(sampleFile, 'utf-8')
+        const parsed = JSON.parse(content)
+        if (!Array.isArray(parsed)) return []
+        if (!query) return parsed.slice(0, limit)
+        const q = query.toLowerCase()
+        return parsed.filter(p => ((p.name || p.title || '') + '').toLowerCase().includes(q)).slice(0, limit)
+      }
+
+      // 3) Legacy: if dataFilePath is a JSON file
       if (existsSync(this.dataFilePath) && statSync(this.dataFilePath).isFile()) {
         const content = await readFile(this.dataFilePath, 'utf-8')
         const parsed = JSON.parse(content)
@@ -28,38 +79,7 @@ export class AmazonFileDataSource implements ProductDataSource {
         return parsed.filter(p => (p.title || p.name || '').toLowerCase().includes(q)).slice(0, limit)
       }
 
-      // If the path is a directory, iterate parquet files inside
-      const dirPath = this.dataFilePath
-      const entries = await readdir(dirPath)
-      const parquetFiles = entries.filter(f => f.endsWith('.parquet')).sort()
-      const results: any[] = []
-      if (parquetFiles.length === 0) return []
-
-      for (const fileName of parquetFiles) {
-        const filePath = join(dirPath, fileName)
-        try {
-          const reader = await parquet.ParquetReader.openFile(filePath)
-          const cursor = reader.getCursor()
-          let record: any = null
-          while ((record = await cursor.next())) {
-            if (!query) {
-              results.push(record)
-            } else {
-              const title = (record.title || record.name || '') + ''
-              if (title.toLowerCase().includes(query.toLowerCase())) {
-                results.push(record)
-              }
-            }
-            if (results.length >= limit) break
-          }
-          await reader.close()
-        } catch (err) {
-          console.error('[AmazonFileDataSource] parquet read error for', fileName, err)
-        }
-        if (results.length >= limit) break
-      }
-
-      return results
+      return []
     } catch (err) {
       console.error('[AmazonFileDataSource] fetch error:', err)
       return []
@@ -68,11 +88,18 @@ export class AmazonFileDataSource implements ProductDataSource {
 
   async isAvailable(): Promise<boolean> {
     try {
-      if (existsSync(this.dataFilePath) && statSync(this.dataFilePath).isFile()) return true
-      if (existsSync(this.dataFilePath) && statSync(this.dataFilePath).isDirectory()) {
-        const items = await readdir(this.dataFilePath)
-        return items.some(f => f.endsWith('.parquet'))
+      const parquetDir = join(process.cwd(), 'data', 'amazon', 'parquet')
+      const sampleFile = join(process.cwd(), 'data', 'amazon', 'samples', 'amazon-products.sample.json')
+
+      if (existsSync(parquetDir) && statSync(parquetDir).isDirectory()) {
+        const items = await readdir(parquetDir)
+        if (items.some(f => f.endsWith('.parquet'))) return true
       }
+
+      if (existsSync(sampleFile) && statSync(sampleFile).isFile()) return true
+
+      if (existsSync(this.dataFilePath) && statSync(this.dataFilePath).isFile()) return true
+
       return false
     } catch (err) {
       return false
