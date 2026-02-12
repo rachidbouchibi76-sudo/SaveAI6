@@ -119,9 +119,6 @@ importers:
       date-fns:
         specifier: 4.1.0
         version: 4.1.0
-      duckdb:
-        specifier: ^1.4.4
-        version: 1.4.4(encoding@0.1.13)
       embla-carousel-react:
         specifier: 8.5.1
         version: 8.5.1(react@19.2.0)
@@ -140,12 +137,6 @@ importers:
       openai:
         specifier: ^6.15.0
         version: 6.15.0(ws@8.19.0)(zod@3.25.76)
-      parquetjs:
-        specifier: ^0.11.2
-        version: 0.11.2
-      parquetjs-lite:
-        specifier: ^0.8.7
-        version: 0.8.7
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -198,12 +189,21 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.7)
+      duckdb:
+        specifier: ^1.4.4
+        version: 1.4.4(encoding@0.1.13)
       eslint:
         specifier: ^9.39.2
         version: 9.39.2(jiti@2.6.1)
       eslint-config-next:
         specifier: ^16.1.1
         version: 16.1.1(@typescript-eslint/parser@8.52.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+      parquetjs:
+        specifier: ^0.11.2
+        version: 0.11.2
+      parquetjs-lite:
+        specifier: ^0.8.7
+        version: 0.8.7
       postcss:
         specifier: ^8.5
         version: 8.5.6

@@ -41,8 +41,8 @@ function generateDeterministicExplanation(
   runnerUpProduct?: Product,
   runnerUpScore?: number
 ): string {
-  const topName = topProduct.name || 'Product'
-  const topStore = topProduct.store || 'unknown store'
+  const topName = topProduct.title || 'Product'
+  const topStore = topProduct.platform || 'unknown store'
 
   // If there's a clear winner (large score difference), give simple explanation
   if (!runnerUpProduct || isDifferenceTooLarge(topScore, runnerUpScore)) {
@@ -79,9 +79,9 @@ function generateDeterministicExplanation(
   }
 
   // Close call - scores are similar
-  const topName2 = topProduct.name || 'Option 1'
-  const runnerUpName = runnerUpProduct?.name || 'Option 2'
-  const runnerUpStore = runnerUpProduct?.store || 'another store'
+  const topName2 = topProduct.title || 'Option 1'
+  const runnerUpName = runnerUpProduct?.title || 'Option 2'
+  const runnerUpStore = runnerUpProduct?.platform || 'another store'
 
   return `${topName2} edges out ${runnerUpName} from ${runnerUpStore} by a small margin. Both are strong options.`
 }
@@ -98,10 +98,10 @@ async function generateAIExplanation(
     const { OpenAI } = await import('openai')
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-    const topName = topProduct.name || 'Product'
-    const topStore = topProduct.store || 'store'
-    const runnerUpName = runnerUpProduct.name || 'Product'
-    const runnerUpStore = runnerUpProduct.store || 'store'
+    const topName = topProduct.title || 'Product'
+    const topStore = topProduct.platform || 'store'
+    const runnerUpName = runnerUpProduct.title || 'Product'
+    const runnerUpStore = runnerUpProduct.platform || 'store'
     const topPrice = topProduct.price || 'unknown'
     const runnerUpPrice = runnerUpProduct.price || 'unknown'
 
@@ -135,7 +135,7 @@ ${factsText}
 
 Keep it brief and factual.`
 
-    const response = await client.messages.create({
+    const response: any = await (client as any).messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 150,
       messages: [

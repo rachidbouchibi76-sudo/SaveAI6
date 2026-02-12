@@ -11,14 +11,14 @@ import { validateAndSanitize, searchSchema } from '@/lib/api/validation'
 
 interface Product {
   id: string
-  name: string
+  title: string
   price: number
   currency: string
   image?: string
   url: string
-  store: string
+  platform: string
   rating?: number
-  reviews?: number
+  reviews_count?: number
 }
 
 interface SearchResponse {
@@ -59,14 +59,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     // Mock product data (replace with actual scraping/API logic)
     const mockProduct: Product = {
       id: 'prod_' + Date.now(),
-      name: isUrlInput ? 'Product from URL' : `Search results for: ${query}`,
+      title: isUrlInput ? 'Product from URL' : `Search results for: ${query}`,
       price: 299.99,
       currency: 'USD',
       image: '/placeholder.jpg',
       url: isUrlInput ? query : `https://example.com/product/${Date.now()}`,
-      store: urlType === 'amazon' ? 'Amazon' : 'Generic Store',
+      platform: urlType === 'amazon' ? 'Amazon' : 'Generic Store',
       rating: 4.5,
-      reviews: 1234,
+      reviews_count: 1234,
     }
 
     // Mock alternatives (legacy) - try providers if available
@@ -88,14 +88,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       const mockAlternatives: Product[] = [
         {
           id: 'alt_1',
-          name: mockProduct.name + ' - Alternative 1',
+          title: mockProduct.title + ' - Alternative 1',
           price: 279.99,
           currency: 'USD',
           image: '/placeholder.jpg',
           url: 'https://example.com/alt1',
-          store: 'Store A',
+          platform: 'Store A',
           rating: 4.3,
-          reviews: 890,
+          reviews_count: 890,
         },
       ]
       allProducts = [...allProducts, ...mockAlternatives]

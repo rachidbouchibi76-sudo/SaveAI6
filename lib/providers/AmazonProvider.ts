@@ -48,9 +48,32 @@ export class AmazonProvider implements ProductProvider {
     const savings = originalPrice > price ? originalPrice - price : 0
     const savingsPercent = originalPrice > 0 ? Math.round((savings / originalPrice) * 100) : 0
 
+    // Shipping extraction with multiple fallbacks
+    let shippingPrice: number | undefined = undefined
+    let shippingTimeDays: number | undefined = undefined
+
+    if (raw.shipping && typeof raw.shipping === 'object') {
+      shippingPrice = raw.shipping.cost !== undefined ? parseFloat(String(raw.shipping.cost)) : undefined
+      shippingTimeDays = raw.shipping.estimatedDays !== undefined ? parseInt(String(raw.shipping.estimatedDays), 10) : undefined
+    } else if (raw.shipping_cost !== undefined) {
+      shippingPrice = parseFloat(String(raw.shipping_cost)) || 0
+    } else if (raw.shipping_price !== undefined) {
+      shippingPrice = parseFloat(String(raw.shipping_price)) || 0
+    } else {
+      // Default assumption: free shipping on Amazon if not specified
+      shippingPrice = 0
+    }
+
+    if (shippingTimeDays === undefined) {
+      if (raw.delivery_time_days !== undefined) shippingTimeDays = parseInt(String(raw.delivery_time_days), 10)
+      else if (raw.estimated_delivery_days !== undefined) shippingTimeDays = parseInt(String(raw.estimated_delivery_days), 10)
+      else shippingTimeDays = undefined
+    }
+
     return {
       id: raw.asin || raw.id || `amazon-${Date.now()}-${Math.random()}`,
-      name: raw.title || raw.name || '',
+      platform: this.store,
+      title: raw.title || raw.name || '',
       price,
       currency: raw.currency || 'USD',
       originalPrice,
@@ -58,12 +81,14 @@ export class AmazonProvider implements ProductProvider {
       savingsPercent,
       image: raw.image_url || raw.image || raw.main_image || '',
       url: raw.product_url || raw.url || '',
-      store: this.store,
-      rating: parseFloat(raw.rating || raw.stars || '0'),
-      reviews: parseInt(raw.reviews_count || raw.reviews || raw.num_reviews || '0', 10),
+      rating: parseFloat(raw.rating || raw.stars || '0') || undefined,
+      reviews_count: raw.reviews_count !== undefined ? parseInt(String(raw.reviews_count), 10) : (raw.reviews !== undefined ? parseInt(String(raw.reviews), 10) : undefined),
+      shipping_price: shippingPrice,
+      shipping_time_days: shippingTimeDays,
       category: raw.category || raw.product_category || '',
       brand: raw.brand || '',
       description: raw.description || raw.product_description || '',
+      metadata: raw
     }
   }
 
@@ -82,9 +107,9 @@ export class AmazonProvider implements ProductProvider {
       if (constraints.minPrice !== undefined && product.price < constraints.minPrice) return false
       if (constraints.maxPrice !== undefined && product.price > constraints.maxPrice) return false
 
-      if (!product.name) return false
+      if (!product.title) return false
 
-      if (query && product.name.toLowerCase().indexOf(query) === -1) return false
+      if (query && product.title.toLowerCase().indexOf(query) === -1) return false
 
       return true
     })

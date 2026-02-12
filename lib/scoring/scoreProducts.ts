@@ -7,10 +7,9 @@ const VERY_SHORT_TITLE_LENGTH = 15
 
 const WEIGHTS = {
   price: 0.35,
-  rating: 0.2,
-  reviews: 0.25,
-  shipping: 0.1,
-  quality: 0.1,
+  rating: 0.30,
+  reviews: 0.15,
+  shipping: 0.20,
 }
 
 interface ScoredProduct extends Product {
@@ -50,21 +49,19 @@ function calculateScore(
   input: SearchInput
 ): ScoredProduct {
   const priceScore = calculatePriceScore(product, allProducts)
-  const ratingScore = calculateRatingScore(product)
+  const ratingScore = calculateRatingScore(product, allProducts)
   const reviewsScore = calculateReviewsScore(product, allProducts)
-  const shippingScore = calculateShippingScore(product)
-  const qualityScore = calculateQualityScore(product, allProducts)
-  
-  const totalScore = 
+  const shippingScore = calculateShippingScore(product, allProducts)
+
+  const totalScore =
     priceScore * WEIGHTS.price +
     ratingScore * WEIGHTS.rating +
     reviewsScore * WEIGHTS.reviews +
-    shippingScore * WEIGHTS.shipping +
-    qualityScore * WEIGHTS.quality
-  
+    shippingScore * WEIGHTS.shipping
+
   const clampedScore = Math.max(0, Math.min(1, totalScore))
   const confidence = calculateConfidence(product, allProducts, priceScore, reviewsScore)
-  
+
   return {
     ...product,
     score: clampedScore,
@@ -93,74 +90,95 @@ function calculatePriceScore(product: Product, allProducts: Product[]): number {
   return Math.max(0, Math.min(1, normalizedPrice))
 }
 
-function calculateRatingScore(product: Product): number {
+function calculateRatingScore(product: Product, allProducts: Product[]): number {
   if (typeof product.rating !== 'number' || product.rating <= 0) {
     return 0
   }
-  
-  const normalizedRating = product.rating / 5
-  
-  // Cap rating impact so it doesn't dominate the score
-  return Math.max(0, Math.min(0.8, normalizedRating))
+
+  // Bayesian average: blend product rating with a global prior (C)
+  // v = number of reviews, m = strength of prior
+  const v = typeof product.reviews_count === 'number' ? product.reviews_count : 0
+  const R = product.rating // on 0-5 scale
+
+  // Choose prior mean C as the mean rating across all products or fallback 3.5
+  const ratings = allProducts.map(p => (typeof p.rating === 'number' ? p.rating : 0)).filter(r => r > 0)
+  const C = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length) : 3.5
+
+  // m controls how strongly we trust the prior when reviews are low
+  const m = 50 // moderate prior strength; increases pull toward C for low v
+
+  const bayesianRating = ((v * R) + (m * C)) / (v + m)
+
+  // normalize to 0-1
+  const normalized = bayesianRating / 5
+  return Math.max(0, Math.min(1, normalized))
 }
 
 function calculateReviewsScore(product: Product, allProducts: Product[]): number {
-  if (typeof product.reviews !== 'number' || product.reviews <= 0) {
-    return 0
-  }
-  
-  // Heavy penalty for low review count (< 10 reviews)
-  if (product.reviews < MIN_REVIEW_COUNT) {
-    return 0.1
-  }
-  
-  const reviewCounts = allProducts
-    .map(p => p.reviews || 0)
-    .filter(r => r > 0)
-  
+  const v = typeof product.reviews_count === 'number' ? product.reviews_count : 0
+  if (v <= 0) return 0
+
+  // Heavy penalty for very low review count
+  if (v < MIN_REVIEW_COUNT) return 0.05
+
+  const reviewCounts = allProducts.map(p => (typeof p.reviews_count === 'number' ? p.reviews_count : 0)).filter(r => r > 0)
   if (reviewCounts.length === 0) return 0.5
-  
-  const maxReviews = Math.max(...reviewCounts)
-  
-  if (maxReviews === 0) return 0.5
-  
-  const logProduct = Math.log(product.reviews + 1)
-  const logMax = Math.log(maxReviews + 1)
-  
-  const normalizedReviews = logProduct / logMax
-  
-  return Math.max(0, Math.min(1, normalizedReviews))
+
+  // Use log10 scaling to reduce impact of outliers
+  const logs = reviewCounts.map(r => Math.log10(r + 1))
+  const maxLog = Math.max(...logs)
+  if (maxLog === 0) return 0.5
+
+  const valLog = Math.log10(v + 1)
+  const normalized = valLog / maxLog
+  return Math.max(0, Math.min(1, normalized))
 }
 
-function calculateShippingScore(product: Product): number {
-  if (!product.shipping) {
-    // Small penalty for missing shipping info
+function calculateShippingScore(product: Product, allProducts: Product[]): number {
+  // If both fields missing, small penalty
+  if (product.shipping_price === undefined && product.shipping_time_days === undefined) {
     return 0.4
   }
-  
-  if (product.shipping.isFree) {
-    return 1
+
+  // Price component: free shipping => 1. otherwise normalize vs max shipping in set
+  let priceComponent = 0
+  if (product.shipping_price === 0) {
+    priceComponent = 1
+  } else if (typeof product.shipping_price === 'number') {
+    const shippingPrices = allProducts.map(p => (typeof p.shipping_price === 'number' ? p.shipping_price : NaN)).filter(n => !Number.isNaN(n))
+    const maxShip = shippingPrices.length ? Math.max(...shippingPrices) : 0
+    if (maxShip > 0) {
+      priceComponent = Math.max(0, Math.min(1, 1 - (product.shipping_price / maxShip)))
+    } else {
+      // unknown max, give neutral score
+      priceComponent = 0.5
+    }
+  } else {
+    priceComponent = 0.5
   }
-  
-  const estimatedDays = product.shipping.estimatedDays
-  
-  if (typeof estimatedDays !== 'number' || estimatedDays <= 0) {
-    return 0.4
+
+  // Time component: map days to score
+  let timeComponent = 0.5
+  if (typeof product.shipping_time_days === 'number') {
+    const d = product.shipping_time_days
+    if (d <= 2) timeComponent = 1
+    else if (d <= 5) timeComponent = 0.7
+    else if (d <= 10) timeComponent = 0.4
+    else timeComponent = 0.1
+  } else {
+    timeComponent = 0.5
   }
-  
-  if (estimatedDays <= 2) return 1
-  if (estimatedDays <= 5) return 0.8
-  if (estimatedDays <= 7) return 0.6
-  if (estimatedDays <= 14) return 0.4
-  
-  return 0.2
+
+  // Combine equally
+  const combined = (priceComponent * 0.5) + (timeComponent * 0.5)
+  return Math.max(0, Math.min(1, combined))
 }
 
 function calculateQualityScore(product: Product, allProducts: Product[]): number {
   let penalty = 0
   
   // Penalty for very short titles
-  if (product.name.length < VERY_SHORT_TITLE_LENGTH) {
+  if ((product.title || '').length < VERY_SHORT_TITLE_LENGTH) {
     penalty += 0.15
   }
   
@@ -200,11 +218,11 @@ function calculateConfidence(
     confidence -= 0.15
   }
   
-  if (!product.reviews || product.reviews === 0) {
+  if (!product.reviews_count || product.reviews_count === 0) {
     confidence -= 0.2
   }
   
-  if (!product.shipping) {
+  if (product.shipping_price === undefined || product.shipping_time_days === undefined) {
     confidence -= 0.1
   }
   

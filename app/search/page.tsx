@@ -148,12 +148,12 @@ export default function SearchPage() {
   const handleSaveProduct = async (product: Product) => {
     try {
       await apiClient.saveProduct({
-        productName: product.name,
+        productName: product.title,
         productUrl: product.url,
         productPrice: product.price,
         productCurrency: product.currency,
         productImage: product.image,
-        store: product.store,
+        store: product.platform,
       })
       toast.success("Product saved!")
     } catch (error) {
@@ -362,9 +362,9 @@ export default function SearchPage() {
               <h2 className="text-2xl font-bold mb-4">Original Product</h2>
               <div className="max-w-md">
                 <ProductCard
-                  productName={searchResults.product.name}
+                  title={searchResults.product.title}
                   price={searchResults.product.price}
-                  store={searchResults.product.store}
+                  platform={searchResults.product.platform}
                   imageURL={searchResults.product.image || "/placeholder.jpg"}
                   affiliateLink={searchResults.product.url}
                 />
@@ -399,9 +399,9 @@ export default function SearchPage() {
                   {displayResults.map((product, index) => (
                     <div key={product.id || index}>
                       <AlternativeCard
-                        productName={product.name}
+                        title={product.title}
                         price={product.price}
-                        store={product.store}
+                        platform={product.platform}
                         imageURL={product.image || "/placeholder.jpg"}
                         affiliateLink={product.url}
                       />
@@ -447,10 +447,10 @@ export default function SearchPage() {
                     {searchResults.cheapest.price < searchResults.product.price ? (
                       <>
                         Save ${(searchResults.product.price - searchResults.cheapest.price).toFixed(2)} by purchasing from{" "}
-                        {searchResults.cheapest.store}
+                        {searchResults.cheapest.platform}
                       </>
                     ) : (
-                      <>Cheapest option available at {searchResults.cheapest.store}</>
+                      <>Cheapest option available at {searchResults.cheapest.platform}</>
                     )}
                   </p>
                 </div>

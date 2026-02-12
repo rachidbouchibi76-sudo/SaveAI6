@@ -75,7 +75,7 @@ export class AmazonFileProvider extends BaseProductProvider {
     
     return {
       id: raw.asin || raw.id || `amazon-${Date.now()}-${Math.random()}`,
-      name: raw.title || raw.name || '',
+      title: raw.title || raw.name || '',
       price,
       currency: raw.currency || 'USD',
       originalPrice,
@@ -83,9 +83,9 @@ export class AmazonFileProvider extends BaseProductProvider {
       savingsPercent,
       image: raw.image_url || raw.image || raw.main_image || '',
       url: raw.product_url || raw.url || '',
-      store: this.store,
+      platform: this.store,
       rating: parseFloat(raw.rating || raw.stars || '0'),
-      reviews: parseInt(raw.reviews_count || raw.reviews || raw.num_reviews || '0', 10),
+      reviews_count: parseInt(raw.reviews_count || raw.reviews || raw.num_reviews || '0', 10),
       category: raw.category || raw.product_category || '',
       brand: raw.brand || '',
       description: raw.description || raw.product_description || '',
@@ -117,7 +117,7 @@ export class AmazonFileProvider extends BaseProductProvider {
         return false
       }
       
-      const nameMatch = product.name.toLowerCase().includes(query)
+      const nameMatch = product.title.toLowerCase().includes(query)
       const categoryMatch = (product.category || '').toLowerCase().includes(query)
       const brandMatch = (product.brand || '').toLowerCase().includes(query)
       

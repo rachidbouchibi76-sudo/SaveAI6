@@ -33,7 +33,7 @@ export async function explainChoice(
 function generateFallbackExplanation(product: Product): string {
   const price = product.price.toFixed(2)
   const rating = product.rating || 0
-  const store = product.store
+  const store = product.platform
   
   return `Best alternative found at ${store} for $${price} with ${rating}/5 rating. This option offers the best overall value based on price, ratings, and reviews.`
 }
@@ -82,16 +82,16 @@ function buildPrompt(input: SearchInput, top1: Product, top2: Product): string {
   const data = {
     query: input.query,
     product1: {
-      name: top1.name,
+      name: top1.title,
       price: top1.price,
       rating: top1.rating,
-      store: top1.store,
+      store: top1.platform,
     },
     product2: {
-      name: top2.name,
+      name: top2.title,
       price: top2.price,
       rating: top2.rating,
-      store: top2.store,
+      store: top2.platform,
     }
   }
   

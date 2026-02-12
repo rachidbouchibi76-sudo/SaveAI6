@@ -122,9 +122,9 @@ export default function SharedComparisonPage() {
                 <div className="flex items-center gap-2">
                   <TrendingDown className="size-5 text-primary" />
                   <span className="font-semibold">Best Value:</span>
-                  <span>{bestValue.name}</span>
+                  <span>{bestValue.title}</span>
                   <span className="text-primary font-bold">${bestValue.price.toFixed(2)}</span>
-                  <span className="text-muted-foreground">at {bestValue.store}</span>
+                  <span className="text-muted-foreground">at {bestValue.platform}</span>
                 </div>
               </CardContent>
             </Card>
@@ -144,7 +144,7 @@ export default function SharedComparisonPage() {
                       {comparison.products.map((product) => (
                         <TableHead key={product.id} className="text-center">
                           <div className="flex flex-col items-center gap-2">
-                            <span className="text-sm">{product.store}</span>
+                            <span className="text-sm">{product.platform}</span>
                           </div>
                         </TableHead>
                       ))}
@@ -159,7 +159,7 @@ export default function SharedComparisonPage() {
                           <div className="relative size-24 mx-auto bg-muted rounded">
                             <Image
                               src={product.image || "/images/photo1767761087.jpg"}
-                              alt={product.name}
+                              alt={product.title}
                               fill
                               className="object-cover rounded"
                             />
@@ -173,7 +173,7 @@ export default function SharedComparisonPage() {
                       <TableCell className="font-medium">Product</TableCell>
                       {comparison.products.map((product) => (
                         <TableCell key={product.id} className="text-center">
-                          <p className="font-semibold line-clamp-2">{product.name}</p>
+                          <p className="font-semibold line-clamp-2">{product.title}</p>
                         </TableCell>
                       ))}
                     </TableRow>
@@ -183,7 +183,7 @@ export default function SharedComparisonPage() {
                       <TableCell className="font-medium">Store</TableCell>
                       {comparison.products.map((product) => (
                         <TableCell key={product.id} className="text-center">
-                          <Badge variant="secondary">{product.store}</Badge>
+                          <Badge variant="secondary">{product.platform}</Badge>
                         </TableCell>
                       ))}
                     </TableRow>
@@ -212,7 +212,7 @@ export default function SharedComparisonPage() {
                             <div>
                               <p className="font-semibold">{product.rating} ⭐</p>
                               <p className="text-sm text-muted-foreground">
-                                {product.reviews} reviews
+                                {product.reviews_count} reviews
                               </p>
                             </div>
                           ) : (

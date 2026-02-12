@@ -6,43 +6,49 @@
 export interface Product {
   // Core identification
   id: string
-  name: string
-  
+  platform: string // source platform e.g. 'amazon', 'shein'
+  title: string
+
   // Pricing
   price: number
   currency: string
   originalPrice?: number
   savings?: number
   savingsPercent?: number
-  
+
+  // Shipping (flattened)
+  shipping_price?: number
+  shipping_time_days?: number
+
   // Media
   image?: string
-  
+
   // Source
   url: string
-  store: string
-  
+
   // Quality indicators
   rating?: number
-  reviews?: number
-  
-  // Optional features
-  shipping?: {
-    cost?: number
-    estimatedDays?: number
-    isFree?: boolean
-  }
-  
+  reviews_count?: number
+
   // Affiliate
   affiliateUrl?: string
-  
+
   // Metadata
   category?: string
   brand?: string
   description?: string
-  
+
   // Provider-specific data (extensible)
   metadata?: Record<string, any>
+
+  // Ranking badge (Phase 3)
+  badge?: 'best_choice' | 'best_value' | 'fastest' | 'cheapest'
+
+  // Guardrails & Trust Metrics (Phase 4)
+  isRecommended?: boolean
+  reasoning_tags?: string[]
+  is_risky?: boolean
+  risk_reasons?: string[]
 }
 
 /**

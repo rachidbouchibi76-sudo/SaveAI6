@@ -75,7 +75,7 @@ export class SheinFileProvider extends BaseProductProvider {
     
     return {
       id: raw.goods_id || raw.id || raw.productId || `shein-${Date.now()}-${Math.random()}`,
-      name: raw.goods_name || raw.name || raw.title || '',
+      title: raw.goods_name || raw.name || raw.title || '',
       price,
       currency: raw.currency || 'USD',
       originalPrice,
@@ -83,9 +83,9 @@ export class SheinFileProvider extends BaseProductProvider {
       savingsPercent,
       image: raw.goods_img || raw.image || raw.goods_thumb || raw.detail_image || '',
       url: raw.goods_url || raw.url || raw.productRelationID || '',
-      store: this.store,
+      platform: this.store,
       rating: parseFloat(raw.comment_rank || raw.rating || raw.productDetails?.ratings || '0'),
-      reviews: parseInt(raw.comment_count || raw.reviews || raw.commentNumber || '0', 10),
+      reviews_count: parseInt(raw.comment_count || raw.reviews || raw.commentNumber || '0', 10),
       category: raw.cat_name || raw.category || raw.cate_name || '',
       brand: 'SHEIN',
       description: raw.detail || raw.description || raw.goods_desc || '',
@@ -117,7 +117,7 @@ export class SheinFileProvider extends BaseProductProvider {
         return false
       }
       
-      const nameMatch = product.name.toLowerCase().includes(query)
+      const nameMatch = product.title.toLowerCase().includes(query)
       const categoryMatch = (product.category || '').toLowerCase().includes(query)
       const descMatch = (product.description || '').toLowerCase().includes(query)
       

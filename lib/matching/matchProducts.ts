@@ -25,7 +25,7 @@ export function matchProducts(
   const sourceAttributes = extractAttributes(sourceTitle)
   
   const filtered = uniqueCandidates.filter(candidate => {
-    if (originalStore && candidate.store.toLowerCase() === originalStore) {
+    if (originalStore && candidate.platform.toLowerCase() === originalStore) {
       return false
     }
     
@@ -42,7 +42,7 @@ export function matchProducts(
     }
     
     // Hard Filter 1: Reject candidates with missing critical fields
-    if (!candidate.price || isNaN(candidate.price) || !candidate.name) {
+    if (!candidate.price || isNaN(candidate.price) || !candidate.title) {
       return false
     }
     
@@ -61,7 +61,7 @@ export function matchProducts(
     }
     
     // Attribute Matching: Reject conflicting extracted attributes
-    const candidateAttributes = extractAttributes(candidate.name)
+    const candidateAttributes = extractAttributes(candidate.title)
     if (!attributesCompatible(sourceAttributes, candidateAttributes)) {
       return false
     }
@@ -75,7 +75,7 @@ export function matchProducts(
 function isValidProduct(product: Product): boolean {
   return !!(
     product.id &&
-    product.name &&
+    product.title &&
     typeof product.price === 'number' &&
     !isNaN(product.price)
   )
@@ -84,7 +84,7 @@ function isValidProduct(product: Product): boolean {
 function removeDuplicates(products: Product[]): Product[] {
   const seen = new Set<string>()
   return products.filter(product => {
-    const key = `${product.store.toLowerCase()}-${product.id}`
+    const key = `${product.platform.toLowerCase()}-${product.id}`
     if (seen.has(key)) return false
     seen.add(key)
     return true
@@ -172,7 +172,7 @@ function areCategoriesCompatible(cat1: string, cat2: string): boolean {
 function passesTitleSimilarity(input: SearchInput, candidate: Product): boolean {
   const query = normalizeTitle(input.query)
   const extractedName = input.extractedProduct?.name ? normalizeTitle(input.extractedProduct.name) : null
-  const candidateName = normalizeTitle(candidate.name)
+  const candidateName = normalizeTitle(candidate.title)
   
   if (!candidateName) return false
   

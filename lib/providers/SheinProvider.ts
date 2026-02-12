@@ -45,10 +45,31 @@ export class SheinProvider implements ProductProvider {
     const originalPrice = parseFloat(raw.retail_price || raw.original_price || raw.unit_price || raw.price || '0')
     const savings = originalPrice > price ? originalPrice - price : 0
     const savingsPercent = originalPrice > 0 ? Math.round((savings / originalPrice) * 100) : 0
+    // Shipping extraction
+    let shippingPrice: number | undefined = undefined
+    let shippingTimeDays: number | undefined = undefined
+
+    if (raw.shipping && typeof raw.shipping === 'object') {
+      shippingPrice = raw.shipping.fee !== undefined ? parseFloat(String(raw.shipping.fee)) : undefined
+      shippingTimeDays = raw.shipping.delivery_days !== undefined ? parseInt(String(raw.shipping.delivery_days), 10) : undefined
+    } else if (raw.shipping_fee !== undefined) {
+      shippingPrice = parseFloat(String(raw.shipping_fee)) || 0
+    } else if (raw.freight !== undefined) {
+      shippingPrice = parseFloat(String(raw.freight)) || 0
+    } else {
+      // If not provided, default to 0 (many Shein listings show free shipping/promotions)
+      shippingPrice = 0
+    }
+
+    if (shippingTimeDays === undefined) {
+      if (raw.delivery_days !== undefined) shippingTimeDays = parseInt(String(raw.delivery_days), 10)
+      else shippingTimeDays = undefined
+    }
 
     return {
       id: raw.goods_id || raw.id || raw.productId || `shein-${Date.now()}-${Math.random()}`,
-      name: raw.goods_name || raw.name || raw.title || '',
+      platform: this.store,
+      title: raw.goods_name || raw.name || raw.title || '',
       price,
       currency: raw.currency || 'USD',
       originalPrice,
@@ -56,12 +77,14 @@ export class SheinProvider implements ProductProvider {
       savingsPercent,
       image: raw.goods_img || raw.image || raw.goods_thumb || raw.detail_image || '',
       url: raw.goods_url || raw.url || raw.productRelationID || '',
-      store: this.store,
-      rating: parseFloat(raw.comment_rank || raw.rating || raw.productDetails?.ratings || '0'),
-      reviews: parseInt(raw.comment_count || raw.reviews || raw.commentNumber || '0', 10),
+      rating: parseFloat(raw.comment_rank || raw.rating || raw.productDetails?.ratings || '0') || undefined,
+      reviews_count: raw.comment_count !== undefined ? parseInt(String(raw.comment_count), 10) : (raw.reviews !== undefined ? parseInt(String(raw.reviews), 10) : undefined),
+      shipping_price: shippingPrice,
+      shipping_time_days: shippingTimeDays,
       category: raw.cat_name || raw.category || raw.cate_name || '',
-      brand: 'SHEIN',
+      brand: raw.brand || 'SHEIN',
       description: raw.detail || raw.description || raw.goods_desc || '',
+      metadata: raw,
     }
   }
 
@@ -80,9 +103,9 @@ export class SheinProvider implements ProductProvider {
       if (constraints.minPrice !== undefined && product.price < constraints.minPrice) return false
       if (constraints.maxPrice !== undefined && product.price > constraints.maxPrice) return false
 
-      if (!product.name) return false
+      if (!product.title) return false
 
-      if (query && product.name.toLowerCase().indexOf(query) === -1) return false
+      if (query && product.title.toLowerCase().indexOf(query) === -1) return false
 
       return true
     })

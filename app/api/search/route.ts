@@ -18,14 +18,14 @@ interface SearchRequest {
 
 interface Product {
   id: string
-  name: string
+  title: string
   price: number
   currency: string
   image?: string
   url: string
-  store: string
+  platform: string
   rating?: number
-  reviews?: number
+  reviews_count?: number
   originalPrice?: number
   savings?: number
   savingsPercent?: number
@@ -109,7 +109,7 @@ function normalizeManusProducts(products: any[]): Product[] {
 
     return {
       id: p.id || p.asin || `manus-${Date.now()}-${Math.random()}`,
-      name: p.title || p.name || 'Unknown Product',
+      title: p.title || p.name || 'Unknown Product',
       price,
       originalPrice,
       savings,
@@ -117,9 +117,9 @@ function normalizeManusProducts(products: any[]): Product[] {
       currency: 'USD',
       image: p.image || p.image_url || p.thumbnail || '/placeholder.jpg',
       url: p.url || p.product_url || '#',
-      store: p.store || 'Amazon',
+      platform: p.store || 'Amazon',
       rating: parseFloat(p.rating || p.stars || '0'),
-      reviews: parseInt(p.reviews || p.review_count || '0', 10),
+      reviews_count: parseInt(p.reviews || p.review_count || '0', 10),
     }
   })
 }
@@ -133,7 +133,7 @@ function normalizeAdmitadProducts(products: any[]): Product[] {
 
     return {
       id: p.id || `admitad-${Date.now()}-${Math.random()}`,
-      name: p.name || p.title || 'Unknown Product',
+      title: p.name || p.title || 'Unknown Product',
       price,
       originalPrice,
       savings,
@@ -141,9 +141,9 @@ function normalizeAdmitadProducts(products: any[]): Product[] {
       currency: 'USD',
       image: p.picture || p.image || '/placeholder.jpg',
       url: p.url || '#',
-      store: p.merchant || 'Online Store',
+      platform: p.merchant || 'Online Store',
       rating: parseFloat(p.rating || '0'),
-      reviews: parseInt(p.reviews_count || '0', 10),
+      reviews_count: parseInt(p.reviews_count || '0', 10),
     }
   })
 }
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       
       allProducts = [{
         id: 'fallback_' + Date.now(),
-        name: isUrlInput ? 'Product from URL' : `${sanitizedQuery}`,
+        title: isUrlInput ? 'Product from URL' : `${sanitizedQuery}`,
         price: fallbackPrice,
         originalPrice: fallbackOriginal,
         savings: fallbackSavings,
@@ -232,9 +232,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         currency: 'USD',
         image: '/placeholder.jpg',
         url: isUrlInput ? sanitizedQuery : `https://example.com/product/${Date.now()}`,
-        store: urlType === 'amazon' ? 'Amazon' : 'Online Store',
+        platform: urlType === 'amazon' ? 'Amazon' : 'Online Store',
         rating: 4.5,
-        reviews: 100,
+        reviews_count: 100,
       }]
     }
 

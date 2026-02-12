@@ -21,13 +21,13 @@ import {
 
 interface ComparisonProduct {
   id: string
-  name: string
+  title: string
   price: number
-  store: string
+  platform: string
   image?: string
   url: string
   rating?: number
-  reviews?: number
+  reviews_count?: number
 }
 
 export default function ComparePage() {
@@ -92,7 +92,7 @@ export default function ComparePage() {
     )
   }
 
-  return (
+    return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -162,9 +162,9 @@ export default function ComparePage() {
                   <div className="flex items-center gap-2">
                     <TrendingDown className="size-5 text-primary" />
                     <span className="font-semibold">Best Value:</span>
-                    <span>{bestValue.name}</span>
+                    <span>{bestValue.title}</span>
                     <span className="text-primary font-bold">${bestValue.price.toFixed(2)}</span>
-                    <span className="text-muted-foreground">at {bestValue.store}</span>
+                    <span className="text-muted-foreground">at {bestValue.platform}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -204,12 +204,12 @@ export default function ComparePage() {
                         {products.map((product) => (
                           <TableCell key={product.id} className="text-center">
                             <div className="relative size-24 mx-auto bg-muted rounded">
-                              <Image
-                                src={product.image || "/images/Product.jpg"}
-                                alt={product.name}
-                                fill
-                                className="object-cover rounded"
-                              />
+                                      <Image
+                                          src={product.image || "/images/Product.jpg"}
+                                          alt={product.title}
+                                          fill
+                                          className="object-cover rounded"
+                                        />
                             </div>
                           </TableCell>
                         ))}
@@ -220,7 +220,7 @@ export default function ComparePage() {
                         <TableCell className="font-medium">Product</TableCell>
                         {products.map((product) => (
                           <TableCell key={product.id} className="text-center">
-                            <p className="font-semibold line-clamp-2">{product.name}</p>
+                            <p className="font-semibold line-clamp-2">{product.title}</p>
                           </TableCell>
                         ))}
                       </TableRow>
@@ -230,7 +230,7 @@ export default function ComparePage() {
                         <TableCell className="font-medium">Store</TableCell>
                         {products.map((product) => (
                           <TableCell key={product.id} className="text-center">
-                            <Badge variant="secondary">{product.store}</Badge>
+                            <Badge variant="secondary">{product.platform}</Badge>
                           </TableCell>
                         ))}
                       </TableRow>
@@ -258,9 +258,9 @@ export default function ComparePage() {
                             {product.rating ? (
                               <div>
                                 <p className="font-semibold">{product.rating} ⭐</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {product.reviews} reviews
-                                </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {product.reviews_count} reviews
+                                  </p>
                               </div>
                             ) : (
                               <span className="text-muted-foreground">N/A</span>
@@ -274,11 +274,11 @@ export default function ComparePage() {
                         <TableCell className="font-medium">Action</TableCell>
                         {products.map((product) => (
                           <TableCell key={product.id} className="text-center">
-                            <Button asChild size="sm">
-                              <a href={product.url} target="_blank" rel="noopener noreferrer">
-                                View Product
-                              </a>
-                            </Button>
+                                    <Button asChild size="sm">
+                                      <a href={product.url} target="_blank" rel="noopener noreferrer">
+                                        View Product
+                                      </a>
+                                    </Button>
                           </TableCell>
                         ))}
                       </TableRow>

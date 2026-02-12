@@ -2,14 +2,14 @@
 
 export interface Product {
   id: string
-  name: string
+  title: string
   price: number
   currency: string
   image?: string
   url: string
-  store: string
+  platform: string
   rating?: number
-  reviews?: number
+  reviews_count?: number
 }
 
 export interface SearchResponse {
